@@ -11,6 +11,7 @@ cd nixl
 #echo "option('disable_mooncake_backend', type : 'boolean', value : false, description : 'disable mooncake backend')" >> meson_options.txt
 #
 
+uv pip install meson
 rm -rf build && \
     mkdir build && \
     uv run meson setup build/ --prefix=/home/yihua/local && \
