@@ -5,12 +5,15 @@ import zmq
 
 
 from nixl._api import nixl_agent
+from nixl._api import nixl_agent_config
 
 zmq_socket: zmq.Socket = None
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Nixl")
+    parser.add_argument("--backend", type=str, default="UCX", help="Backend to use for Nixl")
+
     parser.add_argument("--device", type=str, default="cuda", help="Device to run the benchmark on")
     parser.add_argument("--num-blocks", type=int, default=100, help="Number of blocks to create")
     parser.add_argument("--num-layers", type=int, default=32, help="Number of layers in each block")
@@ -61,11 +64,12 @@ def create_dataset(role,
     return dataset
 
 
-def create_nixl_agents(role: str, tensors: list[torch.Tensor]):
+def create_nixl_agents(role: str, tensors: list[torch.Tensor], backend: str):
     """
     Create Nixl agents based on the role.
     """
-    agent = nixl_agent(role)
+    cfg = nixl_agent_config(backends=[backend])
+    agent = nixl_agent(role, cfg)
     register_descs = agent.register_memory(tensors)
 
     local_meta = agent.get_agent_metadata()
@@ -190,7 +194,7 @@ if __name__ == "__main__":
                              dtype=getattr(torch, args.dtype))
 
     # Create Nixl agents
-    agent, peer_name, register_descs = create_nixl_agents(args.role, dataset)
+    agent, peer_name, register_descs = create_nixl_agents(args.role, dataset, args.backend)
 
     # Initialize transfer metadata
     start = time.perf_counter()
